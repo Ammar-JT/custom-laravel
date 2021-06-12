@@ -92,9 +92,9 @@ this will install the ui for auth and also vue.js:
 */
 
 
-//-----------------------------------------
-//                  routes
-//-----------------------------------------
+//----------------------------------------------------------------
+//                          routes 
+//----------------------------------------------------------------
 /*
 - for route list
         php artisan route:list
@@ -104,12 +104,20 @@ this will install the ui for auth and also vue.js:
   and laravel will understand that you want to override the register route.
   .. but make sure the override is after Auth::routes();
 
+
+*/
+
+
+//----------------------------------------------------------------
+//                  customize authentication functions (login)
+//----------------------------------------------------------------
+/*
+
 - Laravel use thing called: >>> Single Responsibility Trait <<< and it means,
-  .. every trait has only one job! laravel has that alot!
+  .. every trait has only one job! laravel has that alot
+  This traits can be used in the controller so the controller can use the fuctions of this trait as if it exist on it
+  .. example of Traits: RegistersUsers, AuthenticatesUsers
 
-
-- most of the user authentication function is in AuthenticatesUsers.php, in most cases we're
-  .. gonna override a methods form this class, next point i will show you how to do that
 
 - go to AuthenticatesUsers.php (which imported in LoginController.php) and cut showLoginForm()
   .. and paste it in LoginController to override the method,
@@ -123,9 +131,92 @@ this will install the ui for auth and also vue.js:
   .. with: 
         return 'name';
   As you can see, in a seconds, we change our app login, form email to name as credintials!
-  
 
 
 */
 
+
+
+//----------------------------------------------------------------
+//                  customize authentication functions (register)
+//----------------------------------------------------------------
+/*
+
+- register is the same as login, in RegisterController you won't find the methods that you see in route:list
+  .. to find it u must go to the RegistersUsers.php,, it has all the methods
+
+- if you want to override i method just cut it from there and paste it in the RegisterController
+
+
+
+
+*/
+
+
+
+
+//----------------------------------------------------------------
+//                  Event + Event Listiner
+//----------------------------------------------------------------
+/*
+
+- Actually I donno what event means, but it looks like a class if it is called
+  and it called like this: 
+        event(new Registered(
+                  $user = $this->create($request->all())
+              ));
+  Then the listeners classes will be triggered,
+  .. the event and its listeners is registered in EventServiceProvider
+
+- the listener is a class that will listen when the event called and will trigger its functions
+
+- to make a listener for an existing event, register it in EventServiceProvider
+  .. inside the $listen Array, so you put the  event and put the array of you want listen to: 
+      'Illuminate\Auth\Events\Registered' => [ 
+        'App\Listeners\SendWelcomeEmail'
+      ]
+
+- Oh!! i just notice 'Illuminate\Auth\Events\Registered' already exist in the EventServiceProvider
+  but the SendWelcomeEmail doesn't exist so we will add it to the array!!!
+
+
+- we don't have SendWelcomeEmail class yet, if you want to make it: 
+      php artisan event:generate 
+  and it will generate all the listeners exist in the provider
+
+- now you can use the SendWelcomeEmail to send the email from it in the handle(): 
+      Mail::to($event->user)->send(new WelcomeToOurSaas($event->user));
+
+- make the WelcomeToOurSaas function: 
+      php artisan make:mail WelcomeToOurSaas --markdown="emails.welcome"
+  and make the content of your email
+
+- take this map to not be confused: 
+    RegisterController (controller) >> 
+    RegisterUsers (trait used by controllers) >> 
+    Registered (event, used by the trait RegisterUsers) >> 
+    EventServiceProvider (to register events and its listeners) >>
+    SendEmailVerificationNotification (event listener, laravel built-in)
+    SendWelcomeEmail (event listener, I made it)
+
+
+*/
+
+
+
+
+//----------------------------------------------------------------
+//                  Service Provider
+//----------------------------------------------------------------
+/*
+
+- every service provider has boot() and register() method
+
+- Service providers are registered in the config/app.php, 
+
+- How the app.php register these service providers?? 
+  ..by calling the register function in each one of theme
+
+
+*/
 
