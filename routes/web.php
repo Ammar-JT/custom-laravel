@@ -82,6 +82,31 @@ Route::get('/', function(){
 
 
 
+//---------------------------------------
+//              Exception Handling routes
+//----------------------------------------
+Route::get('/user/{id}', function($id){
+  //return user model record, but if user doesn't exist no error will show up
+  //return App\Models\User::find($id);
+
+  //if there is no user, it will give you error 404:
+  return App\Models\User::findOrFail($id);
+
+});
+//this page is not accessable if you're not authenticated
+Route::get('/dashboard', function(){
+  if(!auth()->check()){
+    throw new \App\Exceptions\HackerAlertException();
+  }else{
+    return "you're good to go";
+  }
+
+});
+
+
+
+
+
 
 
 //------------------------------------------------------------------------
@@ -374,11 +399,39 @@ this will install the ui for auth and also vue.js:
               your routes
       })
 
+*/
 
 
 
 
-  
+//----------------------------------------------------------------
+//                  Exception Handling
+//----------------------------------------------------------------
+/*
+- go the the Exception Handling here in web.php and see 
+
+- to make an exception, you can use artisan or do it manually, here we will do it manually
+
+- we want to have page that is not accessable if you are not auth, which is /dashboard
+  .. so make an exception handler that throw an exception when you visit the page with no auth
+
+- make /Exceptions/HackerAlertException.php
+
+- fill it with up with: 
+      namespace
+      use Log
+      use excpetion
+      class HackerAlertException extends Exception{} 
+      report() 
+      render() 
+
+- in render you right the message you want
+- in report you right the report you want, sending email or log or anything,
+- this time i will use log, to have the log stored in storage/logs/laravel.log file,
+  .. go to config/loggin.php and change the channel to single
+
+- now use the this handler in web.php in the route /dashboard up there
+
 
 
 
