@@ -14,9 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+
 
 Route::get('/developers', function(){
     dd(config('app.developers'));
@@ -43,6 +41,44 @@ Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 
+/*
+// to call the service provider variable 'medium-php-sdk': 
+Route::get('/', function(){
+  $medium = resolve('medium-php-sdk');
+  dd($medium);
+});
+
+
+
+// 'Test' middleware for every requests in laravel: 
+Route::get('/', function(){
+  dd(session()->get('test'));
+});
+
+
+
+//this is the ordinary way that you always use, you can use it in the routes for controller also: 
+    //Route::post('posts', [Controllers\PostsController::class, 'index'])->middleware('test')->name('post.index');
+// and you can also use it in the contructor of any controller class
+Route::middleware('test')->get('/', function(){
+  dd(session()->get('test'));
+});
+
+
+
+
+
+Route::middleware('admin')->group(function(){
+  Route::get('/', function(){
+    return view('welcome');
+  });
+});
+
+*/
+
+Route::get('/', function(){
+  return view('welcome');
+});
 
 
 
@@ -210,12 +246,140 @@ this will install the ui for auth and also vue.js:
 //----------------------------------------------------------------
 /*
 
+- service provier: 
+    Service providers are the central place of all Laravel application bootstrapping.
+    .."bootstrapped"? In general, we mean registering things, including registering service
+    .. container bindings, event listeners, middleware, and even routes. 
+    ..Service providers are the central place to configure your application.
+    (مكان تسجل فيه المكتبات والكلاسات وكل شيء يهيء تطبيقك للعمل)
+  
+- config/app.php: 
+    Is where you register all the service providers
+
+- AppServiceProvider: 
+    Is a ready to use service provider, you can use it for any thing,
+    .. and you can also make your own one instead.
+
+
 - every service provider has boot() and register() method
 
 - Service providers are registered in the config/app.php, 
 
 - How the app.php register these service providers?? 
-  ..by calling the register function in each one of theme
+  ..by calling the register function in each one of them
+
+- register() function only to put what you want to use inside it, so only for registering things literaly
+
+
+- Laravel use register() functions for each service provider while it's booting,
+  .. after booting it will call the boot() functions
+
+
+------
+
+- Now let's make a service provider, we want to communicate with medium api
+      https://medium.com/
+  To do that we will use library for php to deal with Medium's api: 
+      https://github.com/jonathantorres/medium-sdk-php
+  We can use it in a controller, but if we are calling it many times (in each function of the controller for example),
+  .. then the best place is a service provider, you can use the ready to use AppServiceProvider..
+  .. but to learn, I will make my own one.
+
+
+- if medium-sdk-php doesn't work, downgrade the "guzzlehttp/guzzle" in you composer.json: 
+      "guzzlehttp/guzzle": "^6.1", <<< instead of 7.@#$ 
+
+- To make a service provider: 
+      php artisan make:provider MediumServiceProvider
+
+- use the medium-sdk-php inside the MediumServiceProvider same way in the documentation,
+  .. but change it to be appropriate for the service provdier in the register(): 
+      $this->app->bind('medium-php-sdk', function(){
+        return new Medium($creds);
+      });
+
+
+- register the new provider 'MediumServiceProvider' in app.php
+
+- after you bind 'medium-php-sdk' with the function in MediumServiceProvider call it here in web.php
+
+*/
+
+
+
+//----------------------------------------------------------------
+//                  Middleware
+//----------------------------------------------------------------
+/*
+- you already know it, just a نقطة تفتيش for the requests and you can customize it
+
+- 1- there is middlewares laravel use them for every requests in: 
+      Kernel.php/$middleware[]
+  2- And there is middleware groups only used for particular set requests
+      Kernel.php/$middlewareGroups[] 
+  3- middlewares works only for a specific route: 
+      ../ routeMiddleware []
+
+- to make a middleware: 
+      php artisan make:middleware Test
+  go and see it
+
+- and as i said in the second point here, if you want to the middleware to be used in every requests
+  .. put it in Kernel.php/$middleware[],,, do that with Test middleware
+  .. then go here in web.php and dd('test')
+
+- now try to put it in the api Kernel.php/middlewareGroups[]
+  .. then go to api.php and dd('test')
+
+
+- do the same for routeMiddleware []: so the middleware will work for a specific route in the kernel
+  .. then go here in web.php and dd('test') in any route or group of routes you want
+
+- if you want to know the strucure of 'api' and 'web' group of routes that you saw in Kernel.php
+  .. just go to the RouteServiceProvider,, there you can modify the prefix of api if you want
+  .. (like when you publish a new version of you api you can make the prefix('api/v2')
+
+------
+
+- Let's make our own group of routes and register it with our own group of middlewares,
+  .. i will make a middleware for that check if user exist in the list of administrators
+  .. that stored in config/app.php ...... let's make the middleware
+      php artisan make:middleware Administrator
+
+- after that we will make a middleware group called 'admin' that contain our
+  .. custom middleware + the whole middleware group 'web' in kernel.php
+
+- after that we will use the middleware group in a group of routes here in web.php
+      Route::middleware('admin')->prefix('admin')->group(function(){
+          your routes
+      })
+  the prefix will be add uri 'admin' before of the routes uri like '/home' >>>> 'admin/home'
+
+----
+- Looks messy??? you can make a route group page like web.php in the RouteServiceProvider.php
+  .. huge thing right? do this in RouteServiceProvider.php:
+        Route::prefix('admin')
+            ->middleware('admin') //this is group of middleware not just one middleware
+            ->namespace($this->namespace . '\Administroators')
+            ->group(base_path('routes/admin.php'));
+
+- make a file in routes folder : routes/admin.php
+
+- remove the messy thing from here: 
+      Route::middleware('admin')->prefix('admin')->group(function(){
+                your routes
+            })
+  and paste it in routes/admin.php: 
+      Route::get('/', function(){
+              your routes
+      })
+
+
+
+
+
+  
+
 
 
 */

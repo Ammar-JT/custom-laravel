@@ -125,6 +125,11 @@ return [
 
     'developers' => ['Ammarjt', 'Luki'],
 
+    'administrators' => [
+        'AmmarTashk@gmail.com',
+        'ammartashk@gmail.com', //by default when you regist a user laravel will lowercase the letters, that's why you need ammartashk even if you register it AmmarTashk
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
@@ -163,6 +168,7 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
+        App\Providers\MediumServiceProvider::class,
 
         /*
          * Package Service Providers...

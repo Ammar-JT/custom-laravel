@@ -6,6 +6,18 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
 {
+//------------------------------------------------
+//                  middleware
+//------------------------------------------------
+/*
+-there is middlewares laravel use them for every requests in: 
+      $middleware[]
+-And there is middleware groups only used for particular set requests
+      $middlewareGroups[] 
+-middlewares works only for a specific route: 
+      $routeMiddleware []
+
+*/
     /**
      * The application's global HTTP middleware stack.
      *
@@ -39,9 +51,20 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
+        //why is 'thottle:api' and not full link like the rest?
+        //cuz 'throttle:api' is a route group just like 'web',
+        //..so it's like group thrttle inside the api group
         'api' => [
+          //'web',
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\Test::class, //to see it go to api.php and make a '/' route that: dd('test')
+
+        ],
+        //middleware group (which is obvously a gruop of middlewares with the name 'admin')
+        'admin' => [
+            'web',
+            \App\Http\Middleware\Administrator::class,
         ],
     ];
 
@@ -62,5 +85,6 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'test' => \App\Http\Middleware\Test::class,
     ];
 }
